@@ -38,7 +38,6 @@ jobs:
 
     - name: Validate dbt Compilation and Tests
       run: |
-        cd dbt/
         dbt deps
         dbt compile --profiles-dir .
         dbt test --profiles-dir .
