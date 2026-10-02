@@ -36,9 +36,9 @@ jobs:
       run: |
         pytest tests/ || echo "No tests folder found yet, skipping."
 
-    - name: Validate dbt Models & Run Tests
+    - name: Validate dbt Compilation and Tests
       run: |
-        cd transform/  # Adjust this if your dbt folder has a different name
+        cd dbt/
         dbt deps
         dbt compile --profiles-dir .
         dbt test --profiles-dir .
