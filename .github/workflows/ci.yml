@@ -38,6 +38,7 @@ jobs:
 
     - name: Validate dbt Compilation and Tests
       run: |
+        cd weather_analytics/
         dbt deps
         dbt compile --profiles-dir .
         dbt test --profiles-dir .
