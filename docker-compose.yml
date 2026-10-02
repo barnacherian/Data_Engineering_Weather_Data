@@ -1,0 +1,54 @@
+services:
+  # PostgreSQL database for Airflow metadata
+  postgres:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+    restart: always
+
+  # SeaweedFS: S3-Compatible Local Storage
+  s3:
+    image: chrislusf/seaweedfs:latest
+    container_name: local-s3-storage
+    ports:
+      - "9000:8333" # S3 compatible port
+      - "9001:9333" # Master port
+      - "8333:8333"
+      - "8332:8332"
+    command: "server -s3 -s3.port=8333 -dir=/data"
+    volumes:
+      - seaweed-data:/data
+    restart: always
+
+  # Apache Airflow Webserver & Scheduler (Combined for local simplicity)
+  airflow:
+    image: apache/airflow:2.8.1-python3.10
+    container_name: airflow-engine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+    command: bash -c "airflow db init && airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true && airflow webserver & airflow scheduler"
+    restart: always
+
+volumes:
+  postgres-db-volume:
+  seaweed-data:

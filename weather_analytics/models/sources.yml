@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: weather_lake
+    description: "Raw and processed weather data lake"
+    tables:
+      - name: processed_weather
+        description: "Processed weather parquet files"
